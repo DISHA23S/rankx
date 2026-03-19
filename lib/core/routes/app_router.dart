@@ -76,16 +76,19 @@ class GoRouterRefreshStream extends ChangeNotifier {
 }
 
 class AppRouter {
-  static final AuthService _authService = Get.find<AuthService>();
+  static late final GoRouter router;
 
-  static final GoRouter router = GoRouter(
-    refreshListenable: GoRouterRefreshStream(
-      _authService.isAuthenticated.stream,
-    ),
-    redirect: (context, state) {
-      final loggedIn = _authService.isAuthenticated.value;
-      final location = state.uri.path;
-      final currentUser = _authService.currentUser.value;
+  static void initialize() {
+    final authService = Get.find<AuthService>();
+    
+    router = GoRouter(
+      refreshListenable: GoRouterRefreshStream(
+        authService.isAuthenticated.stream,
+      ),
+      redirect: (context, state) {
+        final loggedIn = authService.isAuthenticated.value;
+        final location = state.uri.path;
+        final currentUser = authService.currentUser.value;
 
       final loggingScreens = <String>[
         AppRoutes.authStart,
@@ -127,7 +130,7 @@ class AppRouter {
             isAuthFlow &&
             location != AppRoutes.termsAgreement &&
             location != AppRoutes.roleSelection) {
-          final role = currentUser.role ?? 'user';
+          final role = currentUser.role;
           if (role == 'admin') return AppRoutes.adminDashboard;
           return AppRoutes.userHome;
         }
@@ -279,5 +282,6 @@ class AppRouter {
     errorBuilder:
         (context, state) =>
             Scaffold(body: Center(child: Text('Error: ${state.error}'))),
-  );
+    );
+  }
 }

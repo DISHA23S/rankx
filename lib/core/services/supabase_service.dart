@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 class SupabaseService {
   static final SupabaseService _instance = SupabaseService._internal();
@@ -7,9 +8,14 @@ class SupabaseService {
   bool _initialized = false;
 
   SupabaseService._internal() {
-    // Initialize client when service is created
-    _client = Supabase.instance.client;
-    _initialized = true;
+    try {
+      // Initialize client when service is created
+      _client = Supabase.instance.client;
+      _initialized = true;
+    } catch (e) {
+      debugPrint('Warning: Supabase client initialization failed: $e');
+      _initialized = false;
+    }
   }
 
   factory SupabaseService() {
@@ -17,14 +23,25 @@ class SupabaseService {
   }
 
   SupabaseClient get client {
-    if (!_initialized || _client == null) {
-      _client = Supabase.instance.client;
-      _initialized = true;
+    try {
+      if (!_initialized) {
+        _client = Supabase.instance.client;
+        _initialized = true;
+      }
+      return _client;
+    } catch (e) {
+      debugPrint('Error accessing Supabase client: $e');
+      rethrow;
     }
-    return _client;
   }
 
-  bool get isInitialized => _initialized && Supabase.instance.client != null;
+  bool get isInitialized {
+    try {
+      return _initialized;
+    } catch (e) {
+      return false;
+    }
+  }
 
   // Auth Methods - OTP
   Future<void> signInWithOtp({

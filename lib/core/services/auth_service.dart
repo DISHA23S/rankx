@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
 import '../models/user_model.dart' as app_user;
 import 'supabase_service.dart';
@@ -27,10 +28,12 @@ class AuthService extends GetxController {
   final RxString errorMessage = ''.obs;
 
   @override
-  void onInit() async {
+  void onInit() {
     super.onInit();
     supabaseService = Get.find<SupabaseService>();
-    checkAuthStatus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      checkAuthStatus();
+    });
   }
 
   Future<void> checkAuthStatus() async {

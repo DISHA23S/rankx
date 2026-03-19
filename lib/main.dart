@@ -20,6 +20,13 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Set up global error handlers
+  FlutterError.onError = (FlutterErrorDetails details) {
+    debugPrint('Flutter Error: ${details.exception}');
+    debugPrintStack(stackTrace: details.stack);
+  };
+
   //configureUrlStrategy();
   setUrlStrategy(PathUrlStrategy()); 
 
@@ -59,6 +66,9 @@ Future<void> main() async {
 
   // Initialize Theme Controller
   Get.put(ThemeController());
+
+  // Initialize AppRouter after all services are registered
+  AppRouter.initialize();
 
   runApp(const MyApp());
 }
