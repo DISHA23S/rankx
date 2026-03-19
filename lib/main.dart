@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -30,13 +31,29 @@ Future<void> main() async {
   //configureUrlStrategy();
   setUrlStrategy(PathUrlStrategy()); 
 
-  // Load environment variables
-  await dotenv.load();
+  String supabaseUrl = '';
+  String supabaseAnonKey = '';
+
+  // On web, do not load .env as asset (many hosts block dot-files and return 404).
+  if (kIsWeb) {
+    supabaseUrl = const String.fromEnvironment('SUPABASE_URL');
+    supabaseAnonKey = const String.fromEnvironment('SUPABASE_ANON_KEY');
+  } else {
+    await dotenv.load(fileName: '.env');
+    supabaseUrl = dotenv.env['SUPABASE_URL'] ?? '';
+    supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+  }
+
+  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    throw Exception(
+      'Missing Supabase config. Set SUPABASE_URL and SUPABASE_ANON_KEY via --dart-define for web, or .env for mobile.',
+    );
+  }
 
   // Initialize Supabase
   await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL'] ?? '',
-    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
     authOptions: const FlutterAuthClientOptions(
       authFlowType: AuthFlowType.pkce,
       // Supabase will automatically detect and handle auth URLs/fragments
