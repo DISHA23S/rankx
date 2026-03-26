@@ -18,10 +18,9 @@ import 'core/controllers/theme_controller.dart';
 import 'core/utils/url_strategy.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Set up global error handlers
   FlutterError.onError = (FlutterErrorDetails details) {
     debugPrint('Flutter Error: ${details.exception}');
@@ -29,15 +28,30 @@ Future<void> main() async {
   };
 
   //configureUrlStrategy();
-  setUrlStrategy(PathUrlStrategy()); 
+  setUrlStrategy(PathUrlStrategy());
 
   String supabaseUrl = '';
   String supabaseAnonKey = '';
 
-  // On web, do not load .env as asset (many hosts block dot-files and return 404).
+  // First priority: --dart-define (best for production builds).
   if (kIsWeb) {
     supabaseUrl = const String.fromEnvironment('SUPABASE_URL');
     supabaseAnonKey = const String.fromEnvironment('SUPABASE_ANON_KEY');
+
+    // Local-dev fallback for web: load values from .env asset if defines are missing.
+    if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+      try {
+        await dotenv.load(fileName: '.env');
+        supabaseUrl = supabaseUrl.isNotEmpty
+            ? supabaseUrl
+            : (dotenv.env['SUPABASE_URL'] ?? '');
+        supabaseAnonKey = supabaseAnonKey.isNotEmpty
+            ? supabaseAnonKey
+            : (dotenv.env['SUPABASE_ANON_KEY'] ?? '');
+      } catch (_) {
+        // Ignore and keep final validation below.
+      }
+    }
   } else {
     await dotenv.load(fileName: '.env');
     supabaseUrl = dotenv.env['SUPABASE_URL'] ?? '';
@@ -46,7 +60,8 @@ Future<void> main() async {
 
   if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
     throw Exception(
-      'Missing Supabase config. Set SUPABASE_URL and SUPABASE_ANON_KEY via --dart-define for web, or .env for mobile.',
+      'Missing Supabase config. Provide SUPABASE_URL and SUPABASE_ANON_KEY '
+      'via --dart-define (recommended for web/prod) or in .env (local dev).',
     );
   }
 
@@ -113,21 +128,21 @@ class _MyAppState extends State<MyApp> {
       // For web, check if current URL contains auth fragments
       final currentUrl = Uri.base;
       debugPrint('Initial URL: $currentUrl');
-      
+
       if (currentUrl.fragment.isNotEmpty) {
         debugPrint('URL has fragment: ${currentUrl.fragment}');
-        
+
         // Check if it's an auth-related fragment
-        if (currentUrl.fragment.contains('access_token') || 
+        if (currentUrl.fragment.contains('access_token') ||
             currentUrl.fragment.contains('type=recovery') ||
             currentUrl.path.contains('reset-password')) {
           debugPrint('Auth fragment detected - letting Supabase handle it');
-          
+
           // Give Supabase time to process the URL and establish session
           await Future.delayed(const Duration(milliseconds: 500));
-          
+
           // Navigate to reset password screen
-          if (currentUrl.path.contains('reset-password') || 
+          if (currentUrl.path.contains('reset-password') ||
               currentUrl.fragment.contains('type=recovery')) {
             AppRouter.router.go(AppRoutes.passwordReset);
           }
@@ -157,19 +172,19 @@ class _MyAppState extends State<MyApp> {
 
   void _handleDeepLink(Uri uri) async {
     debugPrint('Deep link received: $uri');
-    debugPrint('Host: ${uri.host}, Path: ${uri.path}, Fragment: ${uri.fragment}');
+    debugPrint(
+        'Host: ${uri.host}, Path: ${uri.path}, Fragment: ${uri.fragment}');
 
     // Check if it's a password reset link
-    if (uri.host == 'reset-password' || 
-        uri.path.contains('reset-password') || 
+    if (uri.host == 'reset-password' ||
+        uri.path.contains('reset-password') ||
         uri.fragment.contains('type=recovery')) {
-      
       debugPrint('Password reset link detected');
-      
+
       // Check if there's a token_hash (new Supabase format) or code in query params
       final tokenHash = uri.queryParameters['token_hash'];
       final type = uri.queryParameters['type'];
-      
+
       if (tokenHash != null && type == 'recovery') {
         // New format: token_hash - Supabase will handle this automatically
         debugPrint('Token hash detected - letting Supabase handle auth');
@@ -177,7 +192,7 @@ class _MyAppState extends State<MyApp> {
         AppRouter.router.go(AppRoutes.passwordReset);
         return;
       }
-      
+
       // Check for access_token in fragment (hash-based URL)
       if (uri.fragment.contains('access_token')) {
         debugPrint('Access token in fragment - letting Supabase handle auth');
@@ -185,14 +200,16 @@ class _MyAppState extends State<MyApp> {
         AppRouter.router.go(AppRoutes.passwordReset);
         return;
       }
-      
+
       // Check for legacy code parameter (causes PKCE error)
       final code = uri.queryParameters['code'];
       if (code != null) {
         debugPrint('Legacy code parameter detected: $code');
-        debugPrint('WARNING: This format requires PKCE verifier and will likely fail');
-        debugPrint('Please update your Supabase email template to use token_hash or access_token format');
-        
+        debugPrint(
+            'WARNING: This format requires PKCE verifier and will likely fail');
+        debugPrint(
+            'Please update your Supabase email template to use token_hash or access_token format');
+
         // Try to use verifyOtp as a workaround for recovery tokens
         try {
           debugPrint('Attempting to verify OTP with recovery token...');
@@ -200,7 +217,7 @@ class _MyAppState extends State<MyApp> {
             type: OtpType.recovery,
             token: code,
           );
-          
+
           if (response.session != null) {
             debugPrint('Successfully verified recovery token');
             await Future.delayed(const Duration(milliseconds: 300));
@@ -209,10 +226,11 @@ class _MyAppState extends State<MyApp> {
           }
         } catch (e) {
           debugPrint('verifyOTP failed: $e');
-          debugPrint('This is expected - the code format is not compatible with OTP verification');
+          debugPrint(
+              'This is expected - the code format is not compatible with OTP verification');
         }
       }
-      
+
       // Navigate to reset screen anyway - user will see appropriate error message
       debugPrint('Navigating to reset password screen');
       await Future.delayed(const Duration(milliseconds: 300));

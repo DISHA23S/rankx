@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/screens/terms_agreement_screen.dart';
 import '../../features/auth/screens/auth_start_screen.dart';
+import '../../features/landing/screens/home_landing_screen.dart';
+import '../../features/landing/screens/public_page_shell.dart';
 import '../../features/auth/screens/user_login_screen.dart';
 import '../../features/auth/screens/admin_login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
@@ -18,6 +20,11 @@ import '../../features/admin/screens/user_management_screen.dart';
 import '../../features/admin/screens/subscription_management_screen.dart';
 import '../../features/admin/screens/admin_payment_tracking_screen.dart';
 import '../../features/admin/screens/admin_agreements_settings_screen.dart';
+import '../../features/settings/pages/about_rankx_page.dart';
+import '../../features/settings/pages/contact_us_page.dart';
+import '../../features/settings/pages/privacy_policy_page.dart';
+import '../../features/settings/pages/refund_policy_page.dart';
+import '../../features/payment/pages/checkout_page.dart';
 import '../../features/user/screens/user_home_screen.dart';
 import '../../features/user/screens/quiz_list_screen.dart';
 import '../../features/user/screens/quiz_taking_screen.dart';
@@ -39,6 +46,12 @@ class AppRoutes {
   static const String otpVerification = '/otp-verification';
   static const String roleSelection = '/role-selection';
   static const String termsAgreement = '/terms-agreement';
+  static const String publicTerms = '/terms';
+  static const String publicPrivacy = '/privacy';
+  static const String publicCheckout = '/checkout';
+  static const String publicRefund = '/refund-cancellation';
+  static const String publicAbout = '/about-rankx';
+  static const String publicContact = '/contact-us';
   static const String passwordReset = '/reset-password';
   static const String adminDashboard = '/admin/dashboard';
   static const String quizManagement = '/admin/quiz-management';
@@ -80,7 +93,7 @@ class AppRouter {
 
   static void initialize() {
     final authService = Get.find<AuthService>();
-    
+
     router = GoRouter(
       refreshListenable: GoRouterRefreshStream(
         authService.isAuthenticated.stream,
@@ -90,198 +103,243 @@ class AppRouter {
         final location = state.uri.path;
         final currentUser = authService.currentUser.value;
 
-      final loggingScreens = <String>[
-        AppRoutes.authStart,
-        AppRoutes.userLogin,
-        AppRoutes.adminLogin,
-        AppRoutes.register,
-        AppRoutes.otpVerification,
-        AppRoutes.roleSelection,
-        AppRoutes.termsAgreement,
-        AppRoutes.passwordReset,
-      ];
+        final loggingScreens = <String>[
+          AppRoutes.authStart,
+          AppRoutes.userLogin,
+          AppRoutes.adminLogin,
+          AppRoutes.register,
+          AppRoutes.otpVerification,
+          AppRoutes.roleSelection,
+          AppRoutes.termsAgreement,
+          AppRoutes.passwordReset,
+        ];
 
-      final isAuthFlow = loggingScreens.contains(location);
+        final isAuthFlow = loggingScreens.contains(location);
 
-      // If logged in, check if terms have been accepted
-      if (loggedIn && currentUser != null) {
-        // If user doesn't have a name yet, redirect to role selection to complete profile
-        // (unless already on role selection screen or any auth flow screen)
-        if ((currentUser.name == null || currentUser.name!.isEmpty) && 
-            location != AppRoutes.roleSelection &&
-            !isAuthFlow) {
-          return AppRoutes.roleSelection;
+        // If logged in, check if terms have been accepted
+        if (loggedIn && currentUser != null) {
+          // If user doesn't have a name yet, redirect to role selection to complete profile
+          // (unless already on role selection screen or any auth flow screen)
+          if ((currentUser.name == null || currentUser.name!.isEmpty) &&
+              location != AppRoutes.roleSelection &&
+              !isAuthFlow) {
+            return AppRoutes.roleSelection;
+          }
+
+          final termsAccepted = currentUser.termsAccepted ?? false;
+
+          // If terms not accepted and not on terms/role selection screen, redirect to terms
+          // But skip if user hasn't completed profile yet (no name)
+          if (!termsAccepted &&
+              location != AppRoutes.termsAgreement &&
+              location != AppRoutes.roleSelection &&
+              currentUser.name != null &&
+              currentUser.name!.isNotEmpty) {
+            return AppRoutes.termsAgreement;
+          }
+
+          // If terms accepted and trying to access auth screens, redirect to home
+          if (termsAccepted &&
+              isAuthFlow &&
+              location != AppRoutes.termsAgreement &&
+              location != AppRoutes.roleSelection) {
+            final role = currentUser.role;
+            if (role == 'admin') return AppRoutes.adminDashboard;
+            return AppRoutes.userHome;
+          }
         }
-        
-        final termsAccepted = currentUser.termsAccepted ?? false;
 
-        // If terms not accepted and not on terms/role selection screen, redirect to terms
-        // But skip if user hasn't completed profile yet (no name)
-        if (!termsAccepted && 
-            location != AppRoutes.termsAgreement && 
-            location != AppRoutes.roleSelection &&
-            currentUser.name != null && 
-            currentUser.name!.isNotEmpty) {
-          return AppRoutes.termsAgreement;
+        // If not logged in but on auth screens, allow access
+        if (isAuthFlow && !loggedIn) {
+          return null;
         }
 
-        // If terms accepted and trying to access auth screens, redirect to home
-        if (termsAccepted &&
-            isAuthFlow &&
-            location != AppRoutes.termsAgreement &&
-            location != AppRoutes.roleSelection) {
-          final role = currentUser.role;
-          if (role == 'admin') return AppRoutes.adminDashboard;
-          return AppRoutes.userHome;
-        }
-      }
+        // For non-auth routes, check if user is logged in
+        final isUserRoute = location.startsWith('/user');
+        final isAdminRoute = location.startsWith('/admin');
 
-      // If not logged in but on auth screens, allow access
-      if (isAuthFlow && !loggedIn) {
+        // If not logged in, block access to user/admin routes
+        if (!loggedIn && (isUserRoute || isAdminRoute)) {
+          // send admins back to admin login, others to auth start
+          if (isAdminRoute) return AppRoutes.adminLogin;
+          return AppRoutes.authStart;
+        }
+
         return null;
-      }
-
-      // For non-auth routes, check if user is logged in
-      final isUserRoute = location.startsWith('/user');
-      final isAdminRoute = location.startsWith('/admin');
-
-      // If not logged in, block access to user/admin routes
-      if (!loggedIn && (isUserRoute || isAdminRoute)) {
-        // send admins back to admin login, others to auth start
-        if (isAdminRoute) return AppRoutes.adminLogin;
-        return AppRoutes.authStart;
-      }
-
-      return null;
-    },
-    //initialLocation: AppRoutes.authStart,
-    routes: [
-      GoRoute(path: '/', redirect: (_, __) => AppRoutes.authStart),
-      GoRoute(
-        path: AppRoutes.authStart,
-        builder: (context, state) => const AuthStartScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.userLogin,
-        builder: (context, state) => const UserLoginScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.adminLogin,
-        builder: (context, state) => const AdminLoginScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.register,
-        builder: (context, state) => const RegisterScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.passwordReset,
-        builder: (context, state) => const ResetPasswordScreen(),
-      ),
-      // Admin registration route removed for security (use normal register route)
-      GoRoute(
-        path: AppRoutes.otpVerification,
-        builder: (context, state) {
-          final email = state.extra as String? ?? '';
-          return OtpVerificationScreen(email: email);
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.roleSelection,
-        builder: (context, state) {
-          final email = state.extra as String? ?? '';
-          return RoleSelectionScreen(email: email);
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.termsAgreement,
-        builder: (context, state) => const TermsAgreementScreen(),
-      ),
-      // Admin Routes
-      GoRoute(
-        path: AppRoutes.adminDashboard,
-        builder: (context, state) => const AdminDashboardScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.quizManagement,
-        builder: (context, state) => const QuizManagementScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.quizCreate,
-        builder: (context, state) => const QuizCreateScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.quizEdit,
-        builder: (context, state) {
-          final quizId = state.pathParameters['quizId'] ?? '';
-          return QuizCreateScreen(quizId: quizId);
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.userManagement,
-        builder: (context, state) => const UserManagementScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.subscriptionManagement,
-        builder: (context, state) => const SubscriptionManagementScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.adminPayments,
-        builder: (context, state) => const AdminPaymentTrackingScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.adminAgreements,
-        builder: (context, state) => const AdminAgreementsSettingsScreen(),
-      ),
-      // User Routes
-      GoRoute(
-        path: AppRoutes.userHome,
-        builder: (context, state) => const UserNavShell(initialIndex: 0),
-      ),
-      GoRoute(
-        path: AppRoutes.userProfile,
-        builder: (context, state) => const UserProfileScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.userSettings,
-        builder: (context, state) => const SettingsScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.userHelpSupport,
-        builder: (context, state) => const HelpAndSupportScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.userProgress,
-        builder: (context, state) => const UserNavShell(initialIndex: 2),
-      ),
-      GoRoute(
-        path: AppRoutes.quizList,
-        builder: (context, state) => const UserNavShell(initialIndex: 1),
-      ),
-      GoRoute(
-        path: AppRoutes.quizTaking,
-        builder: (context, state) {
-          final quizId = state.pathParameters['quizId'] ?? '';
-          return QuizTakingScreen(quizId: quizId);
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.quizResult,
-        builder: (context, state) {
-          final quizId = state.pathParameters['quizId'] ?? '';
-          return QuizResultScreen(quizId: quizId);
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.payment,
-        builder: (context, state) {
-          final quizId = state.pathParameters['quizId'] ?? '';
-          return PaymentScreen(quizId: quizId);
-        },
-      ),
-    ],
-    errorBuilder:
-        (context, state) =>
-            Scaffold(body: Center(child: Text('Error: ${state.error}'))),
+      },
+      //initialLocation: AppRoutes.authStart,
+      routes: [
+        GoRoute(
+          path: AppRoutes.root,
+          builder: (context, state) =>
+              const HomeLandingScreen(currentRoute: AppRoutes.root),
+        ),
+        GoRoute(
+          path: AppRoutes.authStart,
+          builder: (context, state) => const AuthStartScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.userLogin,
+          builder: (context, state) => const UserLoginScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.adminLogin,
+          builder: (context, state) => const AdminLoginScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.register,
+          builder: (context, state) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.passwordReset,
+          builder: (context, state) => const ResetPasswordScreen(),
+        ),
+        // Admin registration route removed for security (use normal register route)
+        GoRoute(
+          path: AppRoutes.otpVerification,
+          builder: (context, state) {
+            final email = state.extra as String? ?? '';
+            return OtpVerificationScreen(email: email);
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.roleSelection,
+          builder: (context, state) {
+            final email = state.extra as String? ?? '';
+            return RoleSelectionScreen(email: email);
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.termsAgreement,
+          builder: (context, state) => const TermsAgreementScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.publicTerms,
+          builder: (context, state) => const PublicPageShell(
+            currentRoute: AppRoutes.publicTerms,
+            child: TermsAgreementScreen(),
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.publicPrivacy,
+          builder: (context, state) => const PublicPageShell(
+            currentRoute: AppRoutes.publicPrivacy,
+            child: PrivacyPolicyPage(),
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.publicCheckout,
+          builder: (context, state) => const PublicPageShell(
+            currentRoute: AppRoutes.publicCheckout,
+            child: CheckoutPage(),
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.publicRefund,
+          builder: (context, state) => const PublicPageShell(
+            currentRoute: AppRoutes.publicRefund,
+            child: RefundPolicyPage(),
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.publicAbout,
+          builder: (context, state) => const PublicPageShell(
+            currentRoute: AppRoutes.publicAbout,
+            child: AboutRankXPage(),
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.publicContact,
+          builder: (context, state) => const PublicPageShell(
+            currentRoute: AppRoutes.publicContact,
+            child: ContactUsPage(),
+          ),
+        ),
+        // Admin Routes
+        GoRoute(
+          path: AppRoutes.adminDashboard,
+          builder: (context, state) => const AdminDashboardScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.quizManagement,
+          builder: (context, state) => const QuizManagementScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.quizCreate,
+          builder: (context, state) => const QuizCreateScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.quizEdit,
+          builder: (context, state) {
+            final quizId = state.pathParameters['quizId'] ?? '';
+            return QuizCreateScreen(quizId: quizId);
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.userManagement,
+          builder: (context, state) => const UserManagementScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.subscriptionManagement,
+          builder: (context, state) => const SubscriptionManagementScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.adminPayments,
+          builder: (context, state) => const AdminPaymentTrackingScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.adminAgreements,
+          builder: (context, state) => const AdminAgreementsSettingsScreen(),
+        ),
+        // User Routes
+        GoRoute(
+          path: AppRoutes.userHome,
+          builder: (context, state) => const UserNavShell(initialIndex: 0),
+        ),
+        GoRoute(
+          path: AppRoutes.userProfile,
+          builder: (context, state) => const UserProfileScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.userSettings,
+          builder: (context, state) => const SettingsScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.userHelpSupport,
+          builder: (context, state) => const HelpAndSupportScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.userProgress,
+          builder: (context, state) => const UserNavShell(initialIndex: 2),
+        ),
+        GoRoute(
+          path: AppRoutes.quizList,
+          builder: (context, state) => const UserNavShell(initialIndex: 1),
+        ),
+        GoRoute(
+          path: AppRoutes.quizTaking,
+          builder: (context, state) {
+            final quizId = state.pathParameters['quizId'] ?? '';
+            return QuizTakingScreen(quizId: quizId);
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.quizResult,
+          builder: (context, state) {
+            final quizId = state.pathParameters['quizId'] ?? '';
+            return QuizResultScreen(quizId: quizId);
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.payment,
+          builder: (context, state) {
+            final quizId = state.pathParameters['quizId'] ?? '';
+            return PaymentScreen(quizId: quizId);
+          },
+        ),
+      ],
+      errorBuilder: (context, state) =>
+          Scaffold(body: Center(child: Text('Error: ${state.error}'))),
     );
   }
 }
