@@ -122,9 +122,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               context: context,
               icon: Icons.description_outlined,
               title: 'Terms & Conditions',
-              subtitle: _loadingTerms 
-                  ? 'Loading...' 
-                  : (_termsContent != null ? 'Read our terms and conditions' : 'No terms available'),
+              subtitle: _loadingTerms
+                  ? 'Loading...'
+                  : (_termsContent != null
+                      ? 'Read our terms and conditions'
+                      : 'No terms available'),
               onTap: _termsContent != null ? _showTermsDialog : null,
             ),
             _buildDivider(),
@@ -136,7 +138,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const PrivacyPolicyPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const PrivacyPolicyPage()),
                 );
               },
             ),
@@ -147,8 +150,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSettingItem(
               context: context,
               icon: Icons.receipt_long_outlined,
-              title: 'Checkout',
-              subtitle: 'View checkout page',
+              title: 'Checkout / Payment',
+              subtitle:
+                  'Pay in ₹ to unlock your quiz attempt; pricing and payment terms',
               onTap: () {
                 Navigator.push(
                   context,
@@ -165,7 +169,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const RefundPolicyPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const RefundPolicyPage()),
                 );
               },
             ),
@@ -181,7 +186,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const AboutRankXPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const AboutRankXPage()),
                 );
               },
             ),
@@ -194,7 +200,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ContactUsPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const ContactUsPage()),
                 );
               },
             ),
@@ -249,8 +256,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       leading: Icon(icon, color: AppColors.primary),
       title: Text(title),
-      subtitle: subtitle is Widget 
-          ? subtitle 
+      subtitle: subtitle is Widget
+          ? subtitle
           : Text(
               subtitle as String,
               style: Theme.of(context).textTheme.bodySmall,
@@ -291,15 +298,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             itemBuilder: (context, index) {
               final lang = languages[index];
               return Obx(() => ListTile(
-                title: Text(lang['name']!),
-                onTap: () {
-                  controller.themeController.setLanguage(lang['code']!);
-                  Navigator.pop(context);
-                },
-                trailing: controller.themeController.language.value == lang['code']
-                    ? const Icon(Icons.check, color: AppColors.primary)
-                    : null,
-              ));
+                    title: Text(lang['name']!),
+                    onTap: () {
+                      controller.themeController.setLanguage(lang['code']!);
+                      Navigator.pop(context);
+                    },
+                    trailing: controller.themeController.language.value ==
+                            lang['code']
+                        ? const Icon(Icons.check, color: AppColors.primary)
+                        : null,
+                  ));
             },
           ),
         ),
@@ -309,7 +317,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showTermsDialog() {
     if (_termsContent == null) return;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -335,15 +343,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Open app store - replace with your actual app package name/ID
       // For Android: https://play.google.com/store/apps/details?id=YOUR_PACKAGE_NAME
       // For iOS: https://apps.apple.com/app/idYOUR_APP_ID
-      const storeUrl = 'https://play.google.com/store/apps/details?id=com.example.rankx';
-      
+      const storeUrl =
+          'https://play.google.com/store/apps/details?id=com.example.rankx';
+
       final url = Uri.parse(storeUrl);
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Unable to open app store. Please update the app store URL in settings_screen.dart')),
+            const SnackBar(
+                content: Text(
+                    'Unable to open app store. Please update the app store URL in settings_screen.dart')),
           );
         }
       }
@@ -355,6 +366,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     }
   }
-
-
 }

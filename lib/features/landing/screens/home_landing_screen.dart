@@ -78,7 +78,7 @@ class PublicTopNavBar extends StatelessWidget {
     _NavItem(label: 'About RankX', route: AppRoutes.publicAbout),
     _NavItem(label: 'Terms & Conditions', route: AppRoutes.publicTerms),
     _NavItem(label: 'Privacy Policy', route: AppRoutes.publicPrivacy),
-    _NavItem(label: 'Checkout', route: AppRoutes.publicCheckout),
+    _NavItem(label: 'Payment', route: AppRoutes.publicCheckout),
     _NavItem(label: 'Refund / Cancellation', route: AppRoutes.publicRefund),
     _NavItem(label: 'Contact Us', route: AppRoutes.publicContact),
   ];
@@ -130,42 +130,47 @@ class PublicTopNavBar extends StatelessWidget {
               ),
             ],
           ),
-          const Spacer(),
-          if (!isMobile)
-            Wrap(
-              spacing: AppSpacing.sm,
-              children: navItems.map(
-                (item) {
-                  final isActive = currentPath == item.route;
-                  return TextButton(
-                    onPressed: () => context.go(item.route),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
+          if (!isMobile) ...[
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: AppSpacing.sm,
+                runSpacing: 8,
+                children: navItems.map(
+                  (item) {
+                    final isActive = currentPath == item.route;
+                    return TextButton(
+                      onPressed: () => context.go(item.route),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusSm),
+                        ),
+                        backgroundColor: isActive
+                            ? AppColors.secondary.withOpacity(0.12)
+                            : Colors.transparent,
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusSm),
+                      child: Text(
+                        item.label,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: isActive
+                                  ? AppColors.secondary
+                                  : AppColors.primary,
+                              fontWeight:
+                                  isActive ? FontWeight.w800 : FontWeight.w600,
+                            ),
                       ),
-                      backgroundColor: isActive
-                          ? AppColors.secondary.withOpacity(0.12)
-                          : Colors.transparent,
-                    ),
-                    child: Text(
-                      item.label,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: isActive
-                                ? AppColors.secondary
-                                : AppColors.primary,
-                            fontWeight:
-                                isActive ? FontWeight.w800 : FontWeight.w600,
-                          ),
-                    ),
-                  );
-                },
-              ).toList(),
+                    );
+                  },
+                ).toList(),
+              ),
             ),
+          ],
           if (isMobile)
             PopupMenuButton<String>(
               onSelected: (route) => context.go(route),
@@ -252,27 +257,23 @@ class _PageContent extends StatelessWidget {
         );
       }
 
-      final screenHeight = MediaQuery.of(context).size.height;
-      return SizedBox(
+      return Container(
         width: double.infinity,
-        height: screenHeight * 0.78,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(isDark ? 0.08 : 0.12),
-            borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-            border: Border.all(
-              color: Colors.white.withOpacity(isDark ? 0.22 : 0.28),
-            ),
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(isDark ? 0.08 : 0.12),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+          border: Border.all(
+            color: Colors.white.withOpacity(isDark ? 0.22 : 0.28),
           ),
-          child: const Row(
-            children: [
-              Expanded(flex: 5, child: _HeroSection(isMobile: false)),
-              SizedBox(width: AppSpacing.xl),
-              Expanded(flex: 4, child: _AnimatedQuizVisual()),
-            ],
-          ),
+        ),
+        child: const Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 5, child: _HeroSection(isMobile: false)),
+            SizedBox(width: AppSpacing.xl),
+            Expanded(flex: 4, child: _AnimatedQuizVisual()),
+          ],
         ),
       );
     }
@@ -288,37 +289,180 @@ class _HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final align = isMobile ? TextAlign.center : TextAlign.left;
+    final crossAxis =
+        isMobile ? CrossAxisAlignment.center : CrossAxisAlignment.start;
+    final w = MediaQuery.sizeOf(context).width;
+    final titleSize = w < 1100 ? 26.0 : null;
+
     return Column(
-      crossAxisAlignment:
-          isMobile ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: crossAxis,
+      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Welcome to RankX',
-          textAlign: isMobile ? TextAlign.center : TextAlign.left,
+          'RankX — Quiz. Practice. Rank up.',
+          textAlign: align,
           style: Theme.of(context).textTheme.displaySmall?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
+                height: 1.15,
+                fontSize: titleSize,
               ),
         ),
         const SizedBox(height: AppSpacing.md),
         Text(
-          'Learn, quiz, compete, and grow your rank with a smarter and faster learning platform.',
-          textAlign: isMobile ? TextAlign.center : TextAlign.left,
+          'RankX is an online quiz platform for exam preparation: practice by topic or take full-length tests, '
+          'see how you score against others, and build a steady daily study habit.',
+          textAlign: align,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Colors.white.withOpacity(0.92),
+                color: Colors.white.withOpacity(0.94),
+                height: 1.45,
               ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Wrap(
-          spacing: AppSpacing.md,
-          runSpacing: AppSpacing.md,
-          alignment: isMobile ? WrapAlignment.center : WrapAlignment.start,
-          children: const [
-            _FeatureChip(icon: Icons.bolt_rounded, label: 'Fast Quizzes'),
-            _FeatureChip(icon: Icons.bar_chart_rounded, label: 'Live Rankings'),
-            _FeatureChip(icon: Icons.workspace_premium, label: 'Skill Growth'),
-          ],
+        Text(
+          'How it works',
+          textAlign: align,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: AppColors.secondaryLight,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.3,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          '1. Sign in\n'
+          '2. Choose a quiz\n'
+          '3. Pay in ₹ only when the quiz is paid\n'
+          '4. Attempt the quiz and earn marks\n'
+          '5. View instant results and your live rank',
+          textAlign: align,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.white.withOpacity(0.9),
+                height: 1.55,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.secondary.withOpacity(0.22),
+            // borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: AppColors.secondaryLight.withOpacity(0.85),
+              width: 1.5,
+            ),
+          ),
+          child: Text.rich(
+            TextSpan(
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withOpacity(0.95),
+                    height: 1.45,
+                  ),
+              children: [
+                TextSpan(
+                  text: 'Quiz every day',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.3,
+                      ),
+                ),
+                const TextSpan(text: '  ·  '),
+                TextSpan(
+                  text: 'Pay just ',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.95),
+                      ),
+                ),
+                const TextSpan(
+                  text: '₹9',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+                TextSpan(
+                  text:
+                      ' per quiz when required; bundles may vary.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.95),
+                      ),
+                ),
+              ],
+            ),
+            textAlign: align,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Text(
+          'Why students use RankX',
+          textAlign: align,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Colors.white.withOpacity(0.88),
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        ..._heroBullets.map(
+          (line) => Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+            child: _HeroBulletLine(text: line, align: align),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+const _heroBullets = <String>[
+  'Real exam–level questions & mixed question types',
+  'Instant results with clear performance feedback',
+  'Live ranking & leaderboard to track your position',
+  'Boost preparation with structured daily quiz practice',
+];
+
+class _HeroBulletLine extends StatelessWidget {
+  final String text;
+  final TextAlign align;
+
+  const _HeroBulletLine({
+    required this.text,
+    required this.align,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: align == TextAlign.center
+          ? MainAxisAlignment.center
+          : MainAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Icon(
+            Icons.check_circle_rounded,
+            size: 18,
+            color: AppColors.secondaryLight,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            text,
+            textAlign:
+                align == TextAlign.center ? TextAlign.center : TextAlign.start,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withOpacity(0.92),
+                  height: 1.4,
+                ),
+          ),
         ),
       ],
     );
@@ -361,85 +505,98 @@ class _AnimatedQuizVisualState extends State<_AnimatedQuizVisual>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, _verticalOffset.value),
-          child: Transform.rotate(
-            angle: _rotation.value,
-            child: child,
-          ),
-        );
-      },
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: 260,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardW = constraints.maxWidth.isFinite
+            ? constraints.maxWidth.clamp(200.0, 280.0)
+            : 260.0;
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(0, _verticalOffset.value),
+              child: Transform.rotate(
+                angle: _rotation.value,
+                child: child,
+              ),
+            );
+          },
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.sm,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          'Daily Quiz Challenge',
-                          textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                Container(
+                  width: cardW,
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                                vertical: AppSpacing.sm,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                'Daily Quiz Challenge',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _optionLine(width: 1.0),
+                      const SizedBox(height: AppSpacing.sm),
+                      _optionLine(width: 0.86, highlight: true),
+                      const SizedBox(height: AppSpacing.sm),
+                      _optionLine(width: 0.92),
+                      const SizedBox(height: AppSpacing.md),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(999),
+                        child: LinearProgressIndicator(
+                          minHeight: 8,
+                          value: 0.72,
+                          backgroundColor: AppColors.bgSecondary,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.secondary,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _optionLine(width: 1.0),
-                const SizedBox(height: AppSpacing.sm),
-                _optionLine(width: 0.86, highlight: true),
-                const SizedBox(height: AppSpacing.sm),
-                _optionLine(width: 0.92),
-                const SizedBox(height: AppSpacing.md),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
-                    minHeight: 8,
-                    value: 0.72,
-                    backgroundColor: AppColors.bgSecondary,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppColors.secondary),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -454,42 +611,6 @@ class _AnimatedQuizVisualState extends State<_AnimatedQuizVisual>
               : AppColors.primary.withOpacity(0.15),
           borderRadius: BorderRadius.circular(999),
         ),
-      ),
-    );
-  }
-}
-
-class _FeatureChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _FeatureChip({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.18),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        border: Border.all(color: Colors.white.withOpacity(0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: AppSpacing.iconSm, color: AppColors.secondaryLight),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            label,
-            style: Theme.of(context)
-                .textTheme
-                .labelLarge
-                ?.copyWith(color: Colors.white),
-          ),
-        ],
       ),
     );
   }
@@ -582,9 +703,9 @@ const Map<String, _PageMeta> _pageMeta = {
     icon: Icons.privacy_tip_outlined,
   ),
   AppRoutes.publicCheckout: _PageMeta(
-    title: 'Checkout',
+    title: 'Checkout & payment',
     description:
-        'Review purchase details and payment options before completing your quiz package order.',
+        'Review pricing, your quiz selection, and secure payment options before you pay in ₹.',
     icon: Icons.shopping_bag_outlined,
   ),
   AppRoutes.publicRefund: _PageMeta(

@@ -24,6 +24,7 @@ import '../../features/settings/pages/about_rankx_page.dart';
 import '../../features/settings/pages/contact_us_page.dart';
 import '../../features/settings/pages/privacy_policy_page.dart';
 import '../../features/settings/pages/refund_policy_page.dart';
+import '../../features/settings/pages/public_terms_conditions_page.dart';
 import '../../features/payment/pages/checkout_page.dart';
 import '../../features/user/screens/user_home_screen.dart';
 import '../../features/user/screens/quiz_list_screen.dart';
@@ -217,7 +218,7 @@ class AppRouter {
           path: AppRoutes.publicTerms,
           builder: (context, state) => const PublicPageShell(
             currentRoute: AppRoutes.publicTerms,
-            child: TermsAgreementScreen(),
+            child: PublicTermsConditionsPage(),
           ),
         ),
         GoRoute(

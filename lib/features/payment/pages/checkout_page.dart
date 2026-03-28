@@ -5,9 +5,12 @@ class CheckoutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = MediaQuery.sizeOf(context).width < 420 ? 18.0 : 24.0;
+    final headlineSize = MediaQuery.sizeOf(context).width < 420 ? 26.0 : 32.0;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Checkout'),
+        title: const Text('Payment'),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -17,7 +20,7 @@ class CheckoutPage extends StatelessWidget {
             // Header Section with Gradient
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(24.0),
+              padding: EdgeInsets.all(pad),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -37,35 +40,97 @@ class CheckoutPage extends StatelessWidget {
                     color: Colors.white,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Checkout',
+                  Text(
+                    'Payment',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: headlineSize,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Before completing your purchase, please review your order.',
+                    'Complete payment in ₹ to unlock a quiz attempt on your account. '
+                    'You are purchasing access for yourself; payment activates your attempt so you can take the quiz and earn marks under the app rules.',
                     style: TextStyle(
                       fontSize: 15,
                       color: Colors.white.withOpacity(0.9),
+                      height: 1.35,
                     ),
                   ),
                 ],
               ),
             ),
-            
+
             // Content Section
             Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: EdgeInsets.fromLTRB(pad, 20, pad, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Order Summary Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(context).primaryColor.withOpacity(0.25),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.info_outline_rounded,
+                              color: Theme.of(context).primaryColor,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'This step is payment only: you unlock a quiz attempt on your own account when you choose to pay. '
+                                'After payment goes through, you may attempt the quiz and earn marks according to the rules shown in the app. '
+                                'All prices and charges are displayed in ₹.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[800],
+                                  height: 1.45,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                   Text(
-                    'Order Summary',
+                    'Payment policy',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'By proceeding with payment you agree to RankX Terms & Conditions and these payment terms: '
+                    'prices in ₹, taxes if shown, and the selected quiz package are confirmed when you pay. '
+                    'Payments are processed securely; refunds follow our Refund / Cancellation policy.',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey[700],
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Payment summary',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -109,7 +174,7 @@ class CheckoutPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Payment Methods Section
                   Text(
                     'Payment Methods',
@@ -128,13 +193,21 @@ class CheckoutPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildPaymentMethod(context, Icons.qr_code_2_rounded, 'UPI', Colors.blue),
-                  _buildPaymentMethod(context, Icons.credit_card_rounded, 'Debit Card', Colors.orange),
-                  _buildPaymentMethod(context, Icons.credit_score_rounded, 'Credit Card', Colors.purple),
-                  _buildPaymentMethod(context, Icons.account_balance_rounded, 'Net Banking', Colors.green),
-                  _buildPaymentMethod(context, Icons.account_balance_wallet_rounded, 'Wallets', Colors.teal),
+                  _buildPaymentMethod(
+                      context, Icons.qr_code_2_rounded, 'UPI', Colors.blue),
+                  _buildPaymentMethod(context, Icons.credit_card_rounded,
+                      'Debit Card', Colors.orange),
+                  _buildPaymentMethod(context, Icons.credit_score_rounded,
+                      'Credit Card', Colors.purple),
+                  _buildPaymentMethod(context, Icons.account_balance_rounded,
+                      'Net Banking', Colors.green),
+                  _buildPaymentMethod(
+                      context,
+                      Icons.account_balance_wallet_rounded,
+                      'Wallets',
+                      Colors.teal),
                   const SizedBox(height: 24),
-                  
+
                   // Security Info Cards
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -146,6 +219,7 @@ class CheckoutPage extends StatelessWidget {
                       ),
                     ),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(
                           Icons.security_rounded,
@@ -177,6 +251,7 @@ class CheckoutPage extends StatelessWidget {
                       ),
                     ),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(
                           Icons.flash_on_rounded,
@@ -209,6 +284,7 @@ class CheckoutPage extends StatelessWidget {
 
   Widget _buildOrderItem(BuildContext context, IconData icon, String text) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(8),
@@ -226,6 +302,7 @@ class CheckoutPage extends StatelessWidget {
         Expanded(
           child: Text(
             text,
+            softWrap: true,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -236,7 +313,8 @@ class CheckoutPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentMethod(BuildContext context, IconData icon, String method, Color color) {
+  Widget _buildPaymentMethod(
+      BuildContext context, IconData icon, String method, Color color) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
