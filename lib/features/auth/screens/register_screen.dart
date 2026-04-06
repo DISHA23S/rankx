@@ -255,7 +255,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               _buildRoleCard(
                         role: 'user',
                         title: 'Student',
-                        description: 'Take Quiz and earn points',
+                        description: 'Not Just a Quiz — A Challenge',
                         icon: Icons.school,
                         isSelected: _selectedRole == 'user' || true,
                       ),
@@ -530,12 +530,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: isSelected
+                              ? AppColors.textLight
+                              : AppColors.textPrimary,
                         ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     description,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: isSelected
+                              ? AppColors.textLight
+                              : AppColors.textSecondary,
+                        ),
                   ),
                 ],
               ),

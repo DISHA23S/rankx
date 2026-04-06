@@ -406,11 +406,9 @@ class _QuizTakingScreenState extends State<QuizTakingScreen> {
                 answer.answerText,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: isSelected
-                      ? (isDark 
-                          ? AppColors.textPrimaryDark 
-                          : AppColors.primary)  // Dark blue on light blue background for contrast
-                      : (isDark 
-                          ? AppColors.textPrimaryDark 
+                      ? AppColors.textLight
+                      : (isDark
+                          ? AppColors.textPrimaryDark
                           : AppColors.textPrimary),
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
